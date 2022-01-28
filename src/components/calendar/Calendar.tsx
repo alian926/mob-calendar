@@ -40,6 +40,12 @@ export type CalendarProps = {
     disabledMonthView?: boolean;
     // 变化趋势
     easing?: typeof easings;
+    // 日期高度
+    cellHeight?: number;
+    // 日期底部间隔
+    cellMarginBottom?: number;
+    // 日期容器底部间距
+    bottomSpace?: number;
 };
 
 const defaultFunc = (...rest: any) => {
@@ -57,6 +63,9 @@ const defaultCalendarProps = {
     onToggleShowType: defaultFunc,
     markDates: [],
     easing: easings.easeInOutCirc,
+    cellHeight: 38,
+    cellMarginBottom: 4,
+    bottomSpace: 12
 };
 
 type DragType = Omit<FullGestureState<'drag'>, 'event'> & {
@@ -102,6 +111,12 @@ const Calendar: FC<CalendarProps> = p => {
     // 收起为周视图, 展开为月视图
     const isMonthView = state.showType === 'month';
 
+    // 周视图高度
+    const shortLength = props.cellHeight + props.cellMarginBottom + props.bottomSpace;
+
+    // 月视图高度
+    const longLength = (props.cellHeight + props.cellMarginBottom) * 6 + props.bottomSpace;
+
     // 更新日期. 模拟 getDerivedStateFromProps
     useEffect(() => {
         const dayjsDate = dayjs(props.currentDate);
@@ -131,8 +146,8 @@ const Calendar: FC<CalendarProps> = p => {
             item.isSame(state.currentDate, 'day')
         );
         const pos = Math.floor(index / 7) || 0;
-        return -pos * 42;
-    }, [state.currentDate, state.monthDates]);
+        return -pos * (props.cellHeight + props.cellMarginBottom);
+    }, [state.currentDate, state.monthDates, props.cellHeight, props.cellMarginBottom]);
 
     // 父容器位移变化
     const [containerStyle, containerApi] = useSpring(() => ({
@@ -149,7 +164,7 @@ const Calendar: FC<CalendarProps> = p => {
     // 最外层容器高度
     const [heightStyle, heightApi] = useSpring(() => ({
         from: {
-            height: 46,
+            height: shortLength,
         },
         config: {
             clamp: true,
@@ -256,7 +271,7 @@ const Calendar: FC<CalendarProps> = p => {
     // 纵向移动计算
     const runVertical = (dragState: DragType) => {
         const [, y] = dragState.movement;
-        const height = isMonthView ? 260 : 46;
+        const height = isMonthView ? longLength : shortLength;
         if (dragState.last) {
             if (Math.abs(y) > 50) {
                 if (y > 0) {
@@ -286,14 +301,14 @@ const Calendar: FC<CalendarProps> = p => {
             }
             return;
         }
-        if (height + y > 260 || height + y < 46) {
+        if (height + y > longLength || height + y < shortLength) {
             return;
         }
-        let targetHeight = Math.max(height + y, 46);
+        let targetHeight = Math.max(height + y, shortLength);
         let targetY = Math.min(pos + y * 0.7, 0);
-        if(isMonthView) {
-            targetHeight = Math.min(height + y, 260)
-            targetY = Math.max(pos, y * 0.7)
+        if (isMonthView) {
+            targetHeight = Math.min(height + y, longLength);
+            targetY = Math.max(pos, y * 0.7);
         }
         heightApi.start({
             to: async next => {
@@ -343,11 +358,7 @@ const Calendar: FC<CalendarProps> = p => {
 
     // 切换模式
     const handleShowTypeToggle = (type?: 'week' | 'month') => {
-        const targetType = type
-            ? type
-            : isMonthView
-            ? 'week'
-            : 'month';
+        const targetType = type ? type : isMonthView ? 'week' : 'month';
         containerApi.start({
             to: async next => {
                 await next({
@@ -364,7 +375,7 @@ const Calendar: FC<CalendarProps> = p => {
         heightApi.start({
             to: async next => {
                 await next({
-                    height: targetType === 'week' ? 46 : 260,
+                    height: targetType === 'week' ? shortLength : longLength,
                     immediate: false,
                 });
             },
@@ -395,6 +406,10 @@ const Calendar: FC<CalendarProps> = p => {
                     'is-other-month-day': isOtherMonthDay,
                     'current-day': isCurrentDay,
                 })}
+                style={{
+                    height: `${props.cellHeight}px`,
+                    marginBottom: `${props.cellMarginBottom}px`
+                }}
                 onClick={() => handleDayClick(date)}>
                 <div className='day-text'>{formatDay(date)}</div>
                 {isMarkDate && <div className='dot-mark' />}
