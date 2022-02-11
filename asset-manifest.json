@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/mob-calendar/static/css/main.36703875.css",
-    "main.js": "/mob-calendar/static/js/main.eb2269dd.js",
+    "main.css": "/mob-calendar/static/css/main.d0b1fa81.css",
+    "main.js": "/mob-calendar/static/js/main.b934bd97.js",
     "static/js/787.83910b5d.chunk.js": "/mob-calendar/static/js/787.83910b5d.chunk.js",
     "index.html": "/mob-calendar/index.html",
-    "main.36703875.css.map": "/mob-calendar/static/css/main.36703875.css.map",
-    "main.eb2269dd.js.map": "/mob-calendar/static/js/main.eb2269dd.js.map",
+    "main.d0b1fa81.css.map": "/mob-calendar/static/css/main.d0b1fa81.css.map",
+    "main.b934bd97.js.map": "/mob-calendar/static/js/main.b934bd97.js.map",
     "787.83910b5d.chunk.js.map": "/mob-calendar/static/js/787.83910b5d.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.36703875.css",
-    "static/js/main.eb2269dd.js"
+    "static/css/main.d0b1fa81.css",
+    "static/js/main.b934bd97.js"
   ]
 }
