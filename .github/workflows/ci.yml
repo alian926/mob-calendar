@@ -10,14 +10,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     
-    - name: Install and Build 
-        run:
-          npm ci
-          npm run build
+    - name: Install and Build
+      run: |
+        npm ci
+        npm run build
 
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@v4.2.3
       env:
-        # ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        ssh-key: ${{ secrets.DEPLOY_KEY }}
         BRANCH: gh-pages
         FOLDER: build
