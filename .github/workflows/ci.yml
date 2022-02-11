@@ -18,4 +18,5 @@ jobs:
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       env:
+        personal_token: ${{ secrets.ACCESS_TOKEN }}
         publish_dir: ./build
