@@ -2,7 +2,7 @@
 /**
  * 日视图/列表视图 日历
  */
-import React, { FC, useEffect, useRef, useMemo } from 'react';
+import React, { FC, useEffect, useRef, useMemo, ReactNode } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import cn from 'classnames';
 import { animated, useSpring, useSprings, easings } from '@react-spring/web';
@@ -12,6 +12,7 @@ import {
     formatMonthDate,
     formatWeekDate,
     formatMonthYear,
+    formatDay,
     mergeProps,
 } from '../../utils/index';
 
@@ -46,6 +47,10 @@ export type CalendarProps = {
     cellMarginBottom?: number;
     // 日期容器底部间距
     bottomSpace?: number;
+    // 头部年月格式化
+    formatMonthYear?: (date: Date) => ReactNode;
+    // 格式化日期
+    formatDay?: (date: Date) => ReactNode;
 };
 
 const defaultFunc = (...rest: any) => {
@@ -66,6 +71,8 @@ const defaultCalendarProps = {
     cellHeight: 38,
     cellMarginBottom: 4,
     bottomSpace: 12,
+    formatMonthYear,
+    formatDay
 };
 
 type DragType = Omit<FullGestureState<'drag'>, 'event'> & {
@@ -395,15 +402,6 @@ const Calendar: FC<CalendarProps> = p => {
         });
     };
 
-    // 格式化日期显示
-    const formatDay = (date: Dayjs) => {
-        if (dayjs().isSame(date, 'day')) {
-            return <span style={{ color: '#3388FF' }}>今</span>;
-        }
-        // 'YYYY-MM-DD HH:mm:ss'
-        return dayjs(date).format('D');
-    };
-
     const dayCellRender = (date: Dayjs, index: number, showGray = false) => {
         // 选中日期
         const isCurrentDay = date.isSame(state.currentDate, 'day');
@@ -424,7 +422,7 @@ const Calendar: FC<CalendarProps> = p => {
                     marginBottom: `${props.cellMarginBottom}px`,
                 }}
                 onClick={() => handleDayClick(date)}>
-                <div className='day-text'>{formatDay(date)}</div>
+                <div className='day-text'>{props.formatDay(date)}</div>
                 {isMarkDate && <div className='dot-mark' />}
             </div>
         );
@@ -434,7 +432,7 @@ const Calendar: FC<CalendarProps> = p => {
         <div className='react-mob-calendar'>
             {/* 年月 */}
             <div className='calendar-operate'>
-                <div>{formatMonthYear(state.currentDate)}</div>
+                <div>{props.formatMonthYear(state.currentDate)}</div>
             </div>
 
             {/* 星期 */}
