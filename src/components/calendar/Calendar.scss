@@ -26,11 +26,24 @@ $font-size-lg: 16PX;
         @include font-size();
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         margin-bottom: 12PX;
         height: 24PX;
         color: $black85;
         font-weight: 500;
+        padding: 0 20px;
+        .arrow-container {
+            display: flex;
+            align-items: center;
+        }
+        .hor-image {
+            width: 20PX;
+            height: 100%;
+            color: $black85;
+            &.reverse {
+                transform: rotate(180deg);
+            }
+        }
     }
 
     .calendar-head {

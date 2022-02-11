@@ -16,6 +16,8 @@ import {
     mergeProps,
 } from '../../utils/index';
 
+import arrowSvg from '../../public/arrow.svg';
+
 import { useSetState } from '../../utils/hooks';
 
 export type CalendarProps = {
@@ -72,7 +74,7 @@ const defaultCalendarProps = {
     cellMarginBottom: 4,
     bottomSpace: 12,
     formatMonthYear,
-    formatDay
+    formatDay,
 };
 
 type DragType = Omit<FullGestureState<'drag'>, 'event'> & {
@@ -227,36 +229,40 @@ const Calendar: FC<CalendarProps> = p => {
         });
     }, [state.isTouching, containerApi, state.translateIndex]);
 
+    const changeHorizontal = (add: number) => {
+        springApi.start(i => ({
+            to: async next => {
+                await next({
+                    transform: `translate3d(${
+                        (i - 1 + state.translateIndex + add) * 100
+                    }%, ${state.calendarY}px, 0)`,
+                });
+            },
+        }));
+        setState({
+            translateIndex: state.translateIndex + add,
+            isTouching: false,
+        });
+        if (isMonthView) {
+            const nextMonthFirstDay = state.currentMonthFirstDay[
+                add > 0 ? 'subtract' : 'add'
+            ](1, 'month');
+            handleDayClick(nextMonthFirstDay);
+        } else {
+            const nextWeekFirstDay = state.currentWeekFirstDay[
+                add > 0 ? 'subtract' : 'add'
+            ](1, 'week');
+            handleDayClick(nextWeekFirstDay);
+        }
+    };
+
     // 横向移动计算
     const runHorizontal = (dragState: DragType) => {
         const [x] = dragState.movement;
         if (dragState.last) {
             if (Math.abs(x) > 80) {
                 const add = x > 0 ? 1 : -1;
-                springApi.start(i => ({
-                    to: async next => {
-                        await next({
-                            transform: `translate3d(${
-                                (i - 1 + state.translateIndex + add) * 100
-                            }%, ${state.calendarY}px, 0)`,
-                        });
-                    },
-                }));
-                setState({
-                    translateIndex: state.translateIndex + add,
-                    isTouching: false,
-                });
-                if (isMonthView) {
-                    const nextMonthFirstDay = state.currentMonthFirstDay[
-                        add > 0 ? 'subtract' : 'add'
-                    ](1, 'month');
-                    handleDayClick(nextMonthFirstDay);
-                } else {
-                    const nextWeekFirstDay = state.currentWeekFirstDay[
-                        add > 0 ? 'subtract' : 'add'
-                    ](1, 'week');
-                    handleDayClick(nextWeekFirstDay);
-                }
+                changeHorizontal(add);
             } else {
                 springApi.start(i => ({
                     to: async next => {
@@ -280,6 +286,36 @@ const Calendar: FC<CalendarProps> = p => {
         }));
     };
 
+    const verticalMove = (height: number, y: number, immediate: boolean) => {
+        if (height + y > longLength || height + y < shortLength) {
+            return;
+        }
+        let targetHeight = Math.max(height + y, shortLength);
+        let targetY = Math.min(pos + y * 0.6, 0);
+        if (isMonthView) {
+            targetHeight = Math.min(height + y, longLength);
+            targetY = Math.max(pos, y * 0.6);
+        }
+        heightApi.start({
+            to: async next => {
+                await next({
+                    height: targetHeight,
+                    immediate,
+                });
+            },
+        });
+        containerApi.start({
+            to: async next => {
+                await next({
+                    transform: `translate3d(${
+                        -state.translateIndex * 100
+                    }%, ${targetY}px, 0)`,
+                    immediate,
+                });
+            },
+        });
+    }
+
     // 纵向移动计算
     const runVertical = (dragState: DragType) => {
         const [, y] = dragState.movement;
@@ -292,54 +328,11 @@ const Calendar: FC<CalendarProps> = p => {
                     handleShowTypeToggle('week');
                 }
             } else {
-                heightApi.start({
-                    to: async next => {
-                        await next({
-                            height,
-                            immediate: false,
-                        });
-                    },
-                });
-                containerApi.start({
-                    to: async next => {
-                        await next({
-                            transform: `translate3d(${
-                                -state.translateIndex * 100
-                            }%, ${isMonthView ? 0 : pos}px, 0)`,
-                            immediate: false,
-                        });
-                    },
-                });
+                verticalMove(height, 0, false);
             }
             return;
         }
-        if (height + y > longLength || height + y < shortLength) {
-            return;
-        }
-        let targetHeight = Math.max(height + y, shortLength);
-        let targetY = Math.min(pos + y * 0.7, 0);
-        if (isMonthView) {
-            targetHeight = Math.min(height + y, longLength);
-            targetY = Math.max(pos, y * 0.7);
-        }
-        heightApi.start({
-            to: async next => {
-                await next({
-                    height: targetHeight,
-                    immediate: true,
-                });
-            },
-        });
-        containerApi.start({
-            to: async next => {
-                await next({
-                    transform: `translate3d(${
-                        -state.translateIndex * 100
-                    }%, ${targetY}px, 0)`,
-                    immediate: true,
-                });
-            },
-        });
+        verticalMove(height, y, true);
     };
 
     // 拖动, 周末式切换的时候, 需要用星期来展示列表
@@ -347,6 +340,7 @@ const Calendar: FC<CalendarProps> = p => {
         dragState => {
             dragState.event.stopPropagation();
             if (dragState.first) {
+                setState({ isTouching: false });
             }
 
             if (dragState.axis === 'x') {
@@ -432,7 +426,23 @@ const Calendar: FC<CalendarProps> = p => {
         <div className='react-mob-calendar'>
             {/* 年月 */}
             <div className='calendar-operate'>
+                <div
+                    className='arrow-container'
+                    role='presentation'
+                    onClick={() => {
+                        changeHorizontal(1);
+                    }}>
+                    <img className="hor-image reverse" alt='' src={arrowSvg} />
+                </div>
                 <div>{props.formatMonthYear(state.currentDate)}</div>
+                <div
+                    className='arrow-container'
+                    role='presentation'
+                    onClick={() => {
+                        changeHorizontal(-1);
+                    }}>
+                    <img className="hor-image" alt='' src={arrowSvg} />
+                </div>
             </div>
 
             {/* 星期 */}
