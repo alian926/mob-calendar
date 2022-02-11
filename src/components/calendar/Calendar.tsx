@@ -65,7 +65,7 @@ const defaultCalendarProps = {
     easing: easings.easeInOutCirc,
     cellHeight: 38,
     cellMarginBottom: 4,
-    bottomSpace: 12
+    bottomSpace: 12,
 };
 
 type DragType = Omit<FullGestureState<'drag'>, 'event'> & {
@@ -112,10 +112,12 @@ const Calendar: FC<CalendarProps> = p => {
     const isMonthView = state.showType === 'month';
 
     // 周视图高度
-    const shortLength = props.cellHeight + props.cellMarginBottom + props.bottomSpace;
+    const shortLength =
+        props.cellHeight + props.cellMarginBottom + props.bottomSpace;
 
     // 月视图高度
-    const longLength = (props.cellHeight + props.cellMarginBottom) * 6 + props.bottomSpace;
+    const longLength =
+        (props.cellHeight + props.cellMarginBottom) * 6 + props.bottomSpace;
 
     // 更新日期. 模拟 getDerivedStateFromProps
     useEffect(() => {
@@ -147,7 +149,12 @@ const Calendar: FC<CalendarProps> = p => {
         );
         const pos = Math.floor(index / 7) || 0;
         return -pos * (props.cellHeight + props.cellMarginBottom);
-    }, [state.currentDate, state.monthDates, props.cellHeight, props.cellMarginBottom]);
+    }, [
+        state.currentDate,
+        state.monthDates,
+        props.cellHeight,
+        props.cellMarginBottom,
+    ]);
 
     // 父容器位移变化
     const [containerStyle, containerApi] = useSpring(() => ({
@@ -408,7 +415,7 @@ const Calendar: FC<CalendarProps> = p => {
                 })}
                 style={{
                     height: `${props.cellHeight}px`,
-                    marginBottom: `${props.cellMarginBottom}px`
+                    marginBottom: `${props.cellMarginBottom}px`,
                 }}
                 onClick={() => handleDayClick(date)}>
                 <div className='day-text'>{formatDay(date)}</div>
@@ -477,7 +484,10 @@ const Calendar: FC<CalendarProps> = p => {
                     {!props.disabledMonthView && (
                         <div
                             role='presentation'
-                            onClick={() => handleShowTypeToggle()}
+                            onClick={e => {
+                                e.stopPropagation();
+                                handleShowTypeToggle();
+                            }}
                             className='bottom-operate-btn'
                         />
                     )}

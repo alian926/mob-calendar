@@ -6,3 +6,8 @@
     right: 0;
     background-color: #eee;
 }
+
+.block {
+    margin-top: 20px;
+    text-align: center;
+}

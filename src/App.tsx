@@ -1,16 +1,19 @@
-import React from 'react';
-import Calendar from './components/calendar'
+import React, { useState } from 'react';
+import dayjs from 'dayjs';
+import Calendar from './components/calendar';
 import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <Calendar />
-      <div style={{marginTop: '20px', textAlign: 'center'}}>
-          请在移动模式下打开此页面
-      </div>
-    </div>
-  );
+    const [current, setCurrent] = useState(new Date());
+    return (
+        <div className='App'>
+            <Calendar currentDate={current} onDateClick={setCurrent} />
+            <div className='block'>选中时间:{ dayjs(current).format('YYYY-MM-DD HH:mm:ss') }</div>
+            <div className='block'>
+                请在移动模式下打开此页面
+            </div>
+        </div>
+    );
 }
 
 export default App;
