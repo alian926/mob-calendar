@@ -103,8 +103,6 @@ const Calendar: FC<CalendarProps> = p => {
         isTouching: false,
     });
 
-    // 是否拖动中
-    const isTouchingRef = useRef(false);
     // 日历dom
     const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -221,11 +219,11 @@ const Calendar: FC<CalendarProps> = p => {
             },
         });
     }, [state.isTouching, containerApi, state.translateIndex]);
+
     // 横向移动计算
     const runHorizontal = (dragState: DragType) => {
         const [x] = dragState.movement;
         if (dragState.last) {
-            isTouchingRef.current = false;
             if (Math.abs(x) > 80) {
                 const add = x > 0 ? 1 : -1;
                 springApi.start(i => ({
@@ -342,7 +340,6 @@ const Calendar: FC<CalendarProps> = p => {
         dragState => {
             dragState.event.stopPropagation();
             if (dragState.first) {
-                isTouchingRef.current = true;
             }
 
             if (dragState.axis === 'x') {
@@ -366,26 +363,35 @@ const Calendar: FC<CalendarProps> = p => {
     // 切换模式
     const handleShowTypeToggle = (type?: 'week' | 'month') => {
         const targetType = type ? type : isMonthView ? 'week' : 'month';
-        containerApi.start({
-            to: async next => {
-                await next({
-                    transform: `translate3d(${-state.translateIndex * 100}%, ${
-                        targetType === 'week' ? pos : 0
-                    }px, 0)`,
-                    immediate: false,
-                });
-                setState({
-                    showType: targetType,
-                });
-            },
+        let p1 = new Promise((resolve, reject) => {
+            containerApi.start({
+                to: async next => {
+                    await next({
+                        transform: `translate3d(${
+                            -state.translateIndex * 100
+                        }%, ${targetType === 'week' ? pos : 0}px, 0)`,
+                        immediate: false,
+                    });
+                    resolve('success');
+                },
+            });
         });
-        heightApi.start({
-            to: async next => {
-                await next({
-                    height: targetType === 'week' ? shortLength : longLength,
-                    immediate: false,
-                });
-            },
+        let p2 = new Promise((resolve, reject) => {
+            heightApi.start({
+                to: async next => {
+                    await next({
+                        height:
+                            targetType === 'week' ? shortLength : longLength,
+                        immediate: false,
+                    });
+                    resolve('success');
+                },
+            });
+        });
+        Promise.all([p1, p2]).then(() => {
+            setState({
+                showType: targetType,
+            });
         });
     };
 
